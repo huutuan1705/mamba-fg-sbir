@@ -34,9 +34,9 @@ class MambaModule(nn.Module):
         sequence_output = self.backbone(x)
         output = self.head(sequence_output)
         
-        return output
+        return output # (N, 64)
     
 # model = MambaModule(d_model=2048, output_size=64)
 # dummy_input = torch.randn(48, 25, 2048)
 # output = model(dummy_input)
-# print("Output shape:", output.shape)
+# print("Output shape:", output.shape) # (48, 64)
