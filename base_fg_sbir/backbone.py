@@ -70,11 +70,6 @@ class InceptionV3(nn.Module):
         x = self.Mixed_7b(x)
         # N x 2048 x 8 x 8
         x = self.Mixed_7c(x)
-         
-        # if self.args.use_attention == False:
-        #     x = F.adaptive_max_pool2d(x, (1, 1))
-        #     x = x.view(x.size(0), -1) # (N, 2048)
-        #     return F.normalize(x)
 
         return x
         
