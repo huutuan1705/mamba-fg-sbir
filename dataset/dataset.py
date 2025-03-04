@@ -5,8 +5,8 @@ import pickle
 from PIL import Image
 from random import randint
 from torch.utils.data import Dataset
-from utils import get_transform
-from rasterize import rasterize_sketch
+from dataset.utils import get_transform
+from dataset.rasterize import rasterize_sketch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
