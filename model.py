@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from torch import optim
 from tqdm import tqdm
@@ -49,7 +50,7 @@ class Mamba_FGSBIR(nn.Module):
         
         sketch_tensors = batch['sketch_imgs'] # (N, 25, 3, 299, 299)
         sketch_features = []
-        for i in range(sketch_tensors.shape[0]):
+        for i in range(sketch_tensors.shape):
             sketch_feature = sketch_tensors[i]
             sketch_feature = self.sample_embedding_network(self.attention(sketch_feature))
             sketch_features.append(sketch_feature)
@@ -69,7 +70,7 @@ class Mamba_FGSBIR(nn.Module):
         
         sketch_tensors = batch['sketch_imgs'] # (N, 25, 3, 299, 299)
         sketch_features = []
-        for i in range(sketch_tensors.shape[0]):
+        for i in range(sketch_tensors.shape):
             sketch_feature = sketch_tensors[i]
             sketch_feature = self.sample_embedding_network(self.attention(sketch_feature))
             sketch_features.append(sketch_feature)
@@ -88,5 +89,49 @@ class Mamba_FGSBIR(nn.Module):
         
         for _, sample_batch in enumerate(tqdm(datloader_test)):
             positive_feature, sketch_features = self.test_forward(sample_batch)
-            sketch_features_all.append()
+            sketch_features_all.append(sketch_features)
+            sketch_name.extend(sample_batch['sketch_path'])
+            
+            for i_num, positive_name in enumerate(sample_batch['positive_path']):
+                if positive_name not in image_name:
+                    image_name.append(sample_batch['positive_path'][i_num])
+                    image_features_all.append(positive_feature[i_num])
+                    
+        rank = torch.zeros(len(sketch_name))
+        rank_percentile = torch.zeros(len(sketch_name))
+        image_features_all = torch.stack(image_features_all) #(100, 64)
+        
+        rank_all = torch.zeros(len(sketch_features_all)) # (323, 1)
+        rank_all_percentile = torch.zeros(len(sketch_features_all)) # (323, 1)
+        
+        avererage_area = []
+        avererage_area_percentile = []
+
+        for num, sketch_feature in enumerate(sketch_features_all):
+            s_name = sketch_name[num]
+            sketch_query_name = '_'.join(s_name.split('/')[-1].split('_')[:-1])
+            position_query = image_name.index(sketch_query_name)
+            
+            sketch_feature = self.mamba(sketch_feature.to(device))
+            target_distance = F.pairwise_distance(sketch_feature.to(device), image_features_all[position_query].unsqueeze(0).to(device))
+            distance = F.pairwise_distance(sketch_feature.to(device), image_features_all.to(device))
+            
+            rank_all[num] = distance.le(target_distance).sum()
+            rank_all_percentile[num] = (len(distance) - rank_all[num]) / (len(distance) - 1)
+            
+            avererage_area.append(1/rank_all[num].item() if rank_all[num].item()!=0 else 1)
+            avererage_area_percentile.append(rank_all_percentile[num].item() if rank_all_percentile[num].item()!=0 else 1)
+            
+        
+        top1_accuracy = rank_all.le(1).sum().numpy() / rank_all.shape[0]
+        top5_accuracy = rank_all.le(5).sum().numpy() / rank_all.shape[0]
+        top10_accuracy = rank_all.le(10).sum().numpy() / rank_all.shape[0]
+        
+        # print("avererage_area_percentile: ", avererage_area_percentile)
+        meanMB = np.mean(avererage_area)
+        meanMA = np.mean(avererage_area_percentile)
+        
+        return top1_accuracy, top5_accuracy, top10_accuracy, meanMA, meanMB
+            
+            
         
