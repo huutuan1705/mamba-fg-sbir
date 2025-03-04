@@ -3,8 +3,8 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from backbone import Mamba, MambaConfig
-from head import MambaHead
+from mamba_block.backbone import Mamba, MambaConfig
+from mamba_block.head import MambaHead
 
 class MambaModule(nn.Module):
     def __init__(
