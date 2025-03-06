@@ -26,7 +26,7 @@ class Mamba_FGSBIR(nn.Module):
                 
         self.attention = SelfAttention()
         self.linear = Linear_global(feature_num=self.args.output_size)
-        self.mamba = MambaModule()
+        self.mamba = MambaModule(args)
         
         self.attention.fix_weights()
         self.linear.fix_weights()
@@ -42,23 +42,26 @@ class Mamba_FGSBIR(nn.Module):
         self.train()
         self.optimizer.zero_grad()
         
-        positive_feature = self.sample_embedding_network(batch['positive_img'].to(device))
-        negative_feature = self.sample_embedding_network(batch['negative_img'].to(device))
+        positive_features = self.linear(self.attention(
+            self.sample_embedding_network(batch['positive_img'].to(device))
+        )) # (N, 64)
+        negative_features = self.linear(self.attention(
+            self.sample_embedding_network(batch['negative_img'].to(device))
+        )) # (N, 64)
         
-        positive_feature = self.linear(self.attention(positive_feature)) # (N, 64)
-        negative_feature = self.linear(self.attention(negative_feature)) # (N, 64)
+        loss = 0
         
-        sketch_tensors = batch['sketch_imgs'] # (N, 25, 3, 299, 299)
-        sketch_features = []
-        for i in range(sketch_tensors.shape):
-            sketch_feature = sketch_tensors[i]
-            sketch_feature = self.sample_embedding_network(self.attention(sketch_feature))
-            sketch_features.append(sketch_feature)
+        for i in range(len(batch['sketch_imgs'])):
+            sketch_features = self.attention(
+                self.sample_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
+            
+            sketch_feature = self.mamba(sketch_features.unsqueeze(0).to(device))
+            # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
+            positive_feature = positive_features[i]
+            negative_feature = negative_features[i]
+            
+            loss += self.loss(F.normalize(sketch_feature), positive_feature.unsqueeze(0), negative_feature.unsqueeze(0))
         
-        sketch_features = torch.stack(sketch_features) # (N, 25, 2048)
-        
-        sketch_feature = self.mamba(sketch_features) # (N, 64)
-        loss = self.loss(sketch_feature, positive_feature, negative_feature)
         loss.backward()
         self.optimizer.step()
         
@@ -79,57 +82,74 @@ class Mamba_FGSBIR(nn.Module):
         
         return positive_feature, sketch_features
     
-    def evaluate(self, datloader_test):
+    def evaluate(self, dataloader_test):
         self.eval()
+        sketch_array_tests = []
+        sketch_names = []
+        image_array_tests = torch.FloatTensor().to(device)
+        image_names = []
         
-        image_features_all = []
-        image_name = []
-        sketch_features_all = []
-        sketch_name = []
-        
-        for _, sample_batch in enumerate(tqdm(datloader_test)):
-            positive_feature, sketch_features = self.test_forward(sample_batch)
-            sketch_features_all.append(sketch_features)
-            sketch_name.extend(sample_batch['sketch_path'])
+        for idx, batch in enumerate(tqdm(dataloader_test)):
+            sketch_features_all = torch.FloatTensor().to(device)
+            for data_sketch in batch['sketch_imgs']:
+                # print(data_sketch.shape) # (1, 3, 299, 299)
+                sketch_feature = self.attention(
+                    self.sample_embedding_network(data_sketch.to(device))
+                )
+                # print("sketch_feature.shape: ", sketch_feature.shape) #(1, 2048)
+                sketch_features_all = torch.cat((sketch_features_all, sketch_feature.detach()))
             
-            for i_num, positive_name in enumerate(sample_batch['positive_path']):
-                if positive_name not in image_name:
-                    image_name.append(sample_batch['positive_path'][i_num])
-                    image_features_all.append(positive_feature[i_num])
-                    
-        rank = torch.zeros(len(sketch_name))
-        rank_percentile = torch.zeros(len(sketch_name))
-        image_features_all = torch.stack(image_features_all) #(100, 64)
-        
-        rank_all = torch.zeros(len(sketch_features_all)) # (323, 1)
-        rank_all_percentile = torch.zeros(len(sketch_features_all)) # (323, 1)
-        
+            # print("sketch_feature_ALL.shape: ", sketch_features_all.shape) # (25, 2048)           
+            sketch_array_tests.append(sketch_features_all.cpu())
+            sketch_names.extend(batch['sketch_path'])
+            
+            if batch['positive_path'][0] not in image_names:
+                positive_feature = self.linear(self.attention(
+                    self.sample_embedding_network(batch['positive_img'].to(device))
+                ))
+                image_array_tests = torch.cat((image_array_tests, positive_feature))
+                image_names.extend(batch['positive_path'])
+                
+        num_steps = len(sketch_array_tests[0])
         avererage_area = []
         avererage_area_percentile = []
+                
+        rank_all = torch.zeros(len(sketch_array_tests), num_steps)
+        rank_all_percentile = torch.zeros(len(sketch_array_tests), num_steps)
+                
+        for i_batch, sampled_batch in enumerate(sketch_array_tests):
+            mean_rank = []
+            mean_rank_percentile = []
+            sketch_name = sketch_names[i_batch]
+            
+            sketch_query_name = '_'.join(sketch_name.split('/')[-1].split('_')[:-1])
+            position_query = image_names.index(sketch_query_name)
+            
+            for i_sketch in range(sampled_batch.shape[0]):
+                # print("sampled_batch[:i_sketch+1].shape: ", sampled_batch[:i_sketch+1].shape)
+                sketch_feature = self.mamba(sampled_batch[:i_sketch+1].to(device))
+                target_distance = F.pairwise_distance(sketch_feature.unsqueeze(0).to(device), image_array_tests[position_query].unsqueeze(0).to(device))
+                distance = F.pairwise_distance(sketch_feature.unsqueeze(0).to(device), image_array_tests.to(device))
+                
+                rank_all[i_batch, i_sketch] = distance.le(target_distance).sum()
 
-        for num, sketch_feature in enumerate(sketch_features_all):
-            s_name = sketch_name[num]
-            sketch_query_name = '_'.join(s_name.split('/')[-1].split('_')[:-1])
-            position_query = image_name.index(sketch_query_name)
+                rank_all_percentile[i_batch, i_sketch] = (len(distance) - rank_all[i_batch, i_sketch]) / (len(distance) - 1)
+                if rank_all[i_batch, i_sketch].item() == 0:
+                    mean_rank.append(1.)
+                else:
+                    mean_rank.append(1/rank_all[i_batch, i_sketch].item())
+                        #1/(rank)
+                    mean_rank_percentile.append(rank_all_percentile[i_batch, i_sketch].item())
             
-            sketch_feature = self.mamba(sketch_feature.to(device))
-            target_distance = F.pairwise_distance(sketch_feature.to(device), image_features_all[position_query].unsqueeze(0).to(device))
-            distance = F.pairwise_distance(sketch_feature.to(device), image_features_all.to(device))
-            
-            rank_all[num] = distance.le(target_distance).sum()
-            rank_all_percentile[num] = (len(distance) - rank_all[num]) / (len(distance) - 1)
-            
-            avererage_area.append(1/rank_all[num].item() if rank_all[num].item()!=0 else 1)
-            avererage_area_percentile.append(rank_all_percentile[num].item() if rank_all_percentile[num].item()!=0 else 1)
-            
+            avererage_area.append(np.sum(mean_rank)/len(mean_rank))
+            avererage_area_percentile.append(np.sum(mean_rank_percentile)/len(mean_rank_percentile))
         
-        top1_accuracy = rank_all.le(1).sum().numpy() / rank_all.shape[0]
-        top5_accuracy = rank_all.le(5).sum().numpy() / rank_all.shape[0]
-        top10_accuracy = rank_all.le(10).sum().numpy() / rank_all.shape[0]
+        top1_accuracy = rank_all[:, -1].le(1).sum().numpy() / rank_all.shape[0]
+        top5_accuracy = rank_all[:, -1].le(5).sum().numpy() / rank_all.shape[0]
+        top10_accuracy = rank_all[:, -1].le(10).sum().numpy() / rank_all.shape[0]
         
-        # print("avererage_area_percentile: ", avererage_area_percentile)
-        meanMB = np.mean(avererage_area)
         meanMA = np.mean(avererage_area_percentile)
+        meanMB = np.mean(avererage_area)
         
         return top1_accuracy, top5_accuracy, top10_accuracy, meanMA, meanMB
             

@@ -6,13 +6,12 @@ import torch.nn as nn
 from mamba_block.backbone import Mamba, MambaConfig
 from mamba_block.head import MambaHead
 
+# from backbone import Mamba, MambaConfig
+# from head import MambaHead
+
 class MambaModule(nn.Module):
     def __init__(
-        self,
-        d_model: int = 16,
-        n_layers: int = 2,
-        output_size: int = 64,
-        dropout: float = 0.1,
+        self, args
     ):
         """
         Args:
@@ -22,9 +21,11 @@ class MambaModule(nn.Module):
             dropout: Dropout rate for head
         """
         super().__init__()
-        config = MambaConfig(d_model=d_model, n_layers=n_layers)
+        self.args = args
+        config = MambaConfig(d_model=self.args.d_model, n_layers=self.args.n_layers)
         self.backbone = Mamba(config)
-        self.head = MambaHead(d_model=d_model, output_size=output_size, dropout=dropout)
+        self.head = MambaHead(d_model=self.args.d_model, 
+                              output_size=self.args.output_size, dropout=self.args.dropout)
         
     def forward(self, x):
         """
@@ -37,6 +38,6 @@ class MambaModule(nn.Module):
         return output # (N, 64)
     
 # model = MambaModule(d_model=2048, output_size=64)
-# dummy_input = torch.randn(48, 25, 2048)
+# dummy_input = torch.randn(1, 25, 2048)
 # output = model(dummy_input)
 # print("Output shape:", output.shape) # (48, 64)

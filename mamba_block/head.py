@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class MambaHead(nn.Module):
@@ -32,7 +33,7 @@ class MambaHead(nn.Module):
         x = self.dropout(x)
 
         # Final layer
-        return self.fc(x)
+        return F.normalize(self.fc(x))
 
 # model = MambaHead(d_model=2048, output_size=64)
 # dummy_input = torch.randn(48, 25, 2048)
