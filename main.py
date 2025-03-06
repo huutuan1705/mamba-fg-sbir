@@ -33,6 +33,7 @@ if __name__ == "__main__":
                         help='AdaptiveMaxPool2d / AdaptiveAvgPool2d / AvgPool2d')
     parsers.add_argument('--output_size', type=int, default=64)
     parsers.add_argument('--d_model', type=int, default=16, help='Hidden of dimension size')
+    parsers.add_argument('--num_heads', type=int, default=8, help='number of head self attention')
     parsers.add_argument('--n_layers', type=int, default=2, help='Number of mamba layer')
     parsers.add_argument('--dropout', type=float, default=0.1, help='Dropout rate for head')
     parsers.add_argument('--root_dir', type=str, default='./../')
