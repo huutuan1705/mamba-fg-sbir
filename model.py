@@ -35,7 +35,7 @@ class Mamba_FGSBIR(nn.Module):
             self.mamba.apply(init_weights)
             
         self.optimizer = optim.Adam([
-            {'params': self.mamba.parameters(), 'lr': args.lr_att_linear},
+            {'params': self.mamba.parameters(), 'lr': args.learning_rate},
         ])
         
     def train_model(self, batch):
