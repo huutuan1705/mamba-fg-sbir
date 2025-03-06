@@ -35,13 +35,12 @@ if __name__ == "__main__":
     parsers.add_argument('--d_model', type=int, default=16, help='Hidden of dimension size')
     parsers.add_argument('--n_layers', type=int, default=2, help='Number of mamba layer')
     parsers.add_argument('--dropout', type=float, default=0.1, help='Dropout rate for head')
-    parsers.add_argument('--hidden_size', type=int, default=1024)
-    parsers.add_argument('--num_bilstm_blocks', type=int, default=2)
     parsers.add_argument('--root_dir', type=str, default='./../')
     
     parsers.add_argument('--pretrained_dir', type=str, default='./../')
     parsers.add_argument('--load_pretrained_best', type=bool, default=False)
     parsers.add_argument('--load_pretrained_last', type=bool, default=False)
+    parsers.add_argument('--use_kaiming_init', type=bool, default=False)
     
     parsers.add_argument('--batch_size', type=int, default=16)
     parsers.add_argument('--test_batch_size', type=int, default=1)
