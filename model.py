@@ -24,7 +24,7 @@ class Mamba_FGSBIR(nn.Module):
             if type(m) == nn.Linear or type(m) == nn.Conv2d:
                 nn.init.kaiming_normal_(m.weight)
                 
-        self.attention = SelfAttention()
+        self.attention = SelfAttention(args)
         self.linear = Linear_global(feature_num=self.args.output_size)
         self.mamba = MambaModule(args)
         
