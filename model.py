@@ -28,6 +28,7 @@ class Mamba_FGSBIR(nn.Module):
         self.linear = Linear_global(feature_num=self.args.output_size)
         self.mamba = MambaModule(args)
         
+        self.sample_embedding_network.fix_weights()
         self.attention.fix_weights()
         self.linear.fix_weights()
         
