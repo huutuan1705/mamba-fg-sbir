@@ -30,7 +30,7 @@ class MambaHead(nn.Module):
 
         # Apply layer norm and dropout
         x = self.norm(x)
-        # x = self.dropout(x)
+        x = self.dropout(x)
 
         # Final layer
         return F.normalize(self.fc(x))

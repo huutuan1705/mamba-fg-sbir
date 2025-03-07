@@ -69,21 +69,6 @@ class Mamba_FGSBIR(nn.Module):
         
         return loss.item()
     
-    def test_forward(self, batch):
-        positive_feature = self.sample_embedding_network(batch['positive_img'].to(device))
-        positive_feature = self.linear(self.attention(positive_feature))
-        
-        sketch_tensors = batch['sketch_imgs'] # (N, 25, 3, 299, 299)
-        sketch_features = []
-        for i in range(sketch_tensors.shape):
-            sketch_feature = sketch_tensors[i]
-            sketch_feature = self.sample_embedding_network(self.attention(sketch_feature))
-            sketch_features.append(sketch_feature)
-        
-        sketch_features = torch.stack(sketch_features) # (N, 25, 2048)
-        
-        return positive_feature, sketch_features
-    
     def evaluate(self, dataloader_test):
         self.eval()
         sketch_array_tests = []

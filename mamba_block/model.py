@@ -27,11 +27,6 @@ class MambaModule(nn.Module):
         self.output_size = self.args.output_size
         self.dropout = self.args.dropout
         
-        # self.d_model = 16
-        # self.n_layers = 2
-        # self.output_size = 64
-        # self.dropout = 0.1
-        
         config = MambaConfig(d_model=self.d_model, n_layers=self.n_layers)
         self.backbone = Mamba(config)
         self.head = MambaHead(d_model=self.d_model, 
@@ -50,4 +45,4 @@ class MambaModule(nn.Module):
 # model = MambaModule(d_model=2048, output_size=64)
 # dummy_input = torch.randn(1, 25, 2048)
 # output = model(dummy_input)
-# print("Output shape:", output.shape) # (1, 64)
+# print("Output shape:", output.shape) # (25, 64)
