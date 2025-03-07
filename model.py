@@ -55,7 +55,7 @@ class Mamba_FGSBIR(nn.Module):
             sketch_features = self.attention(
                 self.sample_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
             
-            print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
+            # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
             sketch_feature = self.mamba(sketch_features.unsqueeze(0).to(device))
             # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
             positive_feature = positive_features[i]
