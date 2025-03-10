@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parsers.add_argument('--pretrained_dir', type=str, default='./../')
     parsers.add_argument('--load_pretrained_best', type=bool, default=False)
     parsers.add_argument('--load_pretrained_last', type=bool, default=False)
-    parsers.add_argument('--use_kaiming_init', type=bool, default=False)
+    parsers.add_argument('--use_kaiming_init', type=bool, default=True)
     
     parsers.add_argument('--batch_size', type=int, default=16)
     parsers.add_argument('--test_batch_size', type=int, default=1)
