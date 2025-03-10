@@ -26,11 +26,16 @@ class MambaHead(nn.Module):
             Tensor of shape (batch_size, output_size)
         """
         # Average pooling over sequence length
-        x = x.mean(dim=1)  # (batch_size, d_model)
+        # x = x.mean(dim=1)  # (batch_size, d_model)
+        
+        # Max pooling over sequence length
+        x = x.max(dim=1)  # (batch_size, d_model)
 
         # Apply layer norm and dropout
-        x = self.norm(x)
-        x = self.dropout(x)
+        # x = self.norm(x)
+        # x = self.dropout(x)
+        
+        x = F.normalize(x)
 
         # Final layer
         return F.normalize(self.fc(x))
