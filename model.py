@@ -101,8 +101,8 @@ class Mamba_FGSBIR(nn.Module):
         avererage_area = []
         avererage_area_percentile = []
                 
-        rank_all = torch.zeros(len(sketch_array_tests))
-        rank_all_percentile = torch.zeros(len(sketch_array_tests))
+        rank_all = torch.zeros(len(sketch_array_tests), num_steps)
+        rank_all_percentile = torch.zeros(len(sketch_array_tests), num_steps)
                 
         for i_batch, sampled_batch in enumerate(sketch_array_tests):
             mean_rank = []
@@ -112,27 +112,28 @@ class Mamba_FGSBIR(nn.Module):
             sketch_query_name = '_'.join(sketch_name.split('/')[-1].split('_')[:-1])
             position_query = image_names.index(sketch_query_name)
             
-            # print("sampled_batch[:i_sketch+1].shape: ", sampled_batch[:i_sketch+1].shape)
-            sketch_feature = self.mamba(sampled_batch.unsqueeze(0).to(device))
-            target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
-            distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
-            
-            rank_all[i_batch] = distance.le(target_distance).sum()
+            for i_sketch in range(sampled_batch.shape[0]):
+                # print("sampled_batch[:i_sketch+1].shape: ", sampled_batch[:i_sketch+1].shape)
+                sketch_feature = self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device))
+                target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
+                distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
+                
+                rank_all[i_batch, i_sketch] = distance.le(target_distance).sum()
 
-            rank_all_percentile[i_batch] = (len(distance) - rank_all[i_batch]) / (len(distance) - 1)
-            if rank_all[i_batch].item() == 0:
-                mean_rank.append(1.)
-            else:
-                mean_rank.append(1/rank_all[i_batch].item())
-                    #1/(rank)
-                mean_rank_percentile.append(rank_all_percentile[i_batch].item())
+                rank_all_percentile[i_batch, i_sketch] = (len(distance) - rank_all[i_batch, i_sketch]) / (len(distance) - 1)
+                if rank_all[i_batch, i_sketch].item() == 0:
+                    mean_rank.append(1.)
+                else:
+                    mean_rank.append(1/rank_all[i_batch, i_sketch].item())
+                        #1/(rank)
+                    mean_rank_percentile.append(rank_all_percentile[i_batch, i_sketch].item())
             
             avererage_area.append(np.sum(mean_rank)/len(mean_rank))
             avererage_area_percentile.append(np.sum(mean_rank_percentile)/len(mean_rank_percentile))
         
-        top1_accuracy = rank_all.le(1).sum().numpy() / rank_all.shape[0]
-        top5_accuracy = rank_all.le(5).sum().numpy() / rank_all.shape[0]
-        top10_accuracy = rank_all.le(10).sum().numpy() / rank_all.shape[0]
+        top1_accuracy = rank_all[:, -1].le(1).sum().numpy() / rank_all.shape[0]
+        top5_accuracy = rank_all[:, -1].le(5).sum().numpy() / rank_all.shape[0]
+        top10_accuracy = rank_all[:, -1].le(10).sum().numpy() / rank_all.shape[0]
         
         meanMA = np.mean(avererage_area_percentile)
         meanMB = np.mean(avererage_area)
