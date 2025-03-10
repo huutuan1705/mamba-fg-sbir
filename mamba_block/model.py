@@ -2,6 +2,7 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from mamba_block.backbone import Mamba, MambaConfig
 from mamba_block.head import MambaHead
@@ -38,9 +39,10 @@ class MambaModule(nn.Module):
             x: Input tensor of shape (batch_size, seq_len, channels) for embeddings
         """
         sequence_output = self.backbone(x)
-        output = self.head(sequence_output)
+        # output = self.head(sequence_output)
         
-        return output # (N, 64)
+        # return output # (N, 64)
+        return F.normalize(sequence_output)
     
 # model = MambaModule(d_model=2048, output_size=64)
 # dummy_input = torch.randn(1, 25, 2048)
