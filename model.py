@@ -43,12 +43,12 @@ class Mamba_FGSBIR(nn.Module):
         self.train()
         self.optimizer.zero_grad()
         
-        positive_features = self.attention(
+        positive_features = self.linear(self.attention(
             self.sample_embedding_network(batch['positive_img'].to(device))
-        ) # (N, 64)
-        negative_features = self.attention(
+        )) # (N, 64)
+        negative_features = self.linear(self.attention(
             self.sample_embedding_network(batch['negative_img'].to(device))
-        ) # (N, 64)
+        )) # (N, 64)
         
         loss = 0
         
@@ -57,7 +57,7 @@ class Mamba_FGSBIR(nn.Module):
                 self.sample_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
             
             # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
-            sketch_feature = self.mamba(sketch_features.unsqueeze(0).to(device))
+            sketch_feature = self.linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
             # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
             positive_feature = positive_features[i]
             negative_feature = negative_features[i]
@@ -91,9 +91,9 @@ class Mamba_FGSBIR(nn.Module):
             sketch_names.extend(batch['sketch_path'])
             
             if batch['positive_path'][0] not in image_names:
-                positive_feature = self.attention(
+                positive_feature = self.linear(self.attention(
                     self.sample_embedding_network(batch['positive_img'].to(device))
-                )
+                ))
                 image_array_tests = torch.cat((image_array_tests, positive_feature))
                 image_names.extend(batch['positive_path'])
                 
@@ -114,7 +114,7 @@ class Mamba_FGSBIR(nn.Module):
             
             for i_sketch in range(sampled_batch.shape[0]):
                 # print("sampled_batch[:i_sketch+1].shape: ", sampled_batch[:i_sketch+1].shape)
-                sketch_feature = self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device))
+                sketch_feature = self.linear(self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device)))
                 target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
                 distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
                 
