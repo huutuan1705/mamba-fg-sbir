@@ -29,7 +29,7 @@ class MambaHead(nn.Module):
         # x = x.mean(dim=1)  # (batch_size, d_model)
         
         # Max pooling over sequence length
-        x = x.max(dim=1)  # (batch_size, d_model)
+        torch.max(x, dim=1).values
 
         # Apply layer norm and dropout
         # x = self.norm(x)
