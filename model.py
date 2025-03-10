@@ -27,6 +27,7 @@ class Mamba_FGSBIR(nn.Module):
         self.attention = SelfAttention(args)
         self.linear = Linear_global(feature_num=self.args.output_size)
         self.mamba = MambaModule(args)
+        self.mamba_linear = Linear_global(feature_num=self.args.output_size)
         
         self.sample_embedding_network.fix_weights()
         self.attention.fix_weights()
@@ -57,7 +58,7 @@ class Mamba_FGSBIR(nn.Module):
                 self.sample_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
             
             # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
-            sketch_feature = self.linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
+            sketch_feature = self.mamba_linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
             # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
             positive_feature = positive_features[i]
             negative_feature = negative_features[i]
@@ -114,7 +115,7 @@ class Mamba_FGSBIR(nn.Module):
             
             for i_sketch in range(sampled_batch.shape[0]):
                 # print("sampled_batch[:i_sketch+1].shape: ", sampled_batch[:i_sketch+1].shape)
-                sketch_feature = self.linear(self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device)))
+                sketch_feature = self.mamba_linear(self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device)))
                 target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
                 distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
                 

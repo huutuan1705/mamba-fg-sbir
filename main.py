@@ -72,6 +72,7 @@ if __name__ == "__main__":
         model.sample_embedding_network.load_state_dict(backbones_state['sample_embedding_network'])
         model.attention.load_state_dict(attention_state['attention'])
         model.linear.load_state_dict(linear_state['linear'])
+        model.mamba_linear.load_state_dict(linear_state['linear'])
         
         # model.sketch_embedding_network.load_state_dict(backbones_state['sketch_embedding_network'])
         # model.sketch_attention.load_state_dict(attention_state['sketch_attention'])
