@@ -44,11 +44,11 @@ class MambaModule(nn.Module):
             x: Input tensor of shape (batch_size, seq_len, channels) for embeddings
         """
         sequence_output = self.backbone(x)
-        sequence_output = sequence_output[:, -1, :]
-        return F.normalize(sequence_output)
+        # sequence_output = sequence_output[:, -1, :]
+        # return F.normalize(sequence_output)
         
-        # output = self.head(sequence_output)        
-        # return output # (N, 64)
+        output = self.head(sequence_output)        
+        return output # (N, 64)
     
 # model = MambaModule(None)
 # dummy_input = torch.randn(1, 25, 2048)

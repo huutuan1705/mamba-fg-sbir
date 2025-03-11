@@ -38,7 +38,7 @@ class MambaHead(nn.Module):
         x = F.normalize(x)
 
         # Final layer
-        return F.normalize(self.fc(x))
+        return x
 
 # model = MambaHead(d_model=2048, output_size=64)
 # dummy_input = torch.randn(48, 25, 2048)
