@@ -32,10 +32,10 @@ class MambaHead(nn.Module):
         # x = torch.max(x, dim=1).values
 
         # Apply layer norm and dropout
-        # x = self.norm(x)
+        x = self.norm(x)
         # x = self.dropout(x)
         
-        x = F.normalize(x)
+        # x = F.normalize(x)
 
         # Final layer
         return x
