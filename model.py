@@ -80,7 +80,7 @@ class Mamba_FGSBIR(nn.Module):
         for idx, batch in enumerate(tqdm(dataloader_test)):
             sketch_features_all = torch.FloatTensor().to(device)
             for data_sketch in batch['sketch_imgs']:
-                # print(data_sketch.shape) # (1, 3, 299, 299)
+                # print(data_sketch.shape) # (25, 3, 299, 299)
                 sketch_feature = self.attention(
                     self.sample_embedding_network(data_sketch.to(device))
                 )

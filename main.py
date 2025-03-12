@@ -78,30 +78,30 @@ if __name__ == "__main__":
         # model.sketch_attention.load_state_dict(attention_state['sketch_attention'])
         # model.sketch_linear.load_state_dict(linear_state['sketch_linear'])
         
-        step_count, top1, top5, top10, meanA, meanB = -1, 0, 0, 0, 0, 0
-        for i_epoch in range(args.epochs):
-            print(f"Epoch: {i_epoch+1} / {args.epochs}")
-            loss = 0
-            for _, batch_data in enumerate(tqdm(dataloader_train)):
-                step_count = step_count + 1
-                model.train()
-                loss = model.train_model(batch=batch_data)
+    step_count, top1, top5, top10, meanA, meanB = -1, 0, 0, 0, 0, 0
+    for i_epoch in range(args.epochs):
+        print(f"Epoch: {i_epoch+1} / {args.epochs}")
+        loss = 0
+        for _, batch_data in enumerate(tqdm(dataloader_train)):
+            step_count = step_count + 1
+            model.train()
+            loss = model.train_model(batch=batch_data)
+        
+        with torch.no_grad():
+            model.eval()
+            top1_eval, top5_eval, top10_eval, meanA_eval, meanB_eval = model.evaluate(dataloader_test)
             
-            with torch.no_grad():
-                model.eval()
-                top1_eval, top5_eval, top10_eval, meanA_eval, meanB_eval = model.evaluate(dataloader_test)
+            if top10_eval > top10:
+                top1, top5, top10 = top1_eval, top5_eval, top10_eval
+                meanA, meanB = meanA_eval, meanB_eval
+                torch.save(model.state_dict(), args.dataset_name + '_best.pth')
+            
+            torch.save(model.state_dict(), args.dataset_name + '_last.pth')
                 
-                if top10_eval > top10:
-                    top1, top5, top10 = top1_eval, top5_eval, top10_eval
-                    meanA, meanB = meanA_eval, meanB_eval
-                    torch.save(model.state_dict(), args.dataset_name + '_best.pth')
-                
-                torch.save(model.state_dict(), args.dataset_name + '_last.pth')
-                    
-            print('Top 1 accuracy:  {:.4f}'.format(top1_eval))
-            print('Top 5 accuracy:  {:.4f}'.format(top5_eval))
-            print('Top 10 accuracy: {:.4f}'.format(top10_eval))
-            print('Mean A:          {:.4f}'.format(meanA_eval))
-            print('Mean B:          {:.4f}'.format(meanB_eval))
-            print('Loss:            {:.4f}'.format(loss))
-            print("========================================")
+        print('Top 1 accuracy:  {:.4f}'.format(top1_eval))
+        print('Top 5 accuracy:  {:.4f}'.format(top5_eval))
+        print('Top 10 accuracy: {:.4f}'.format(top10_eval))
+        print('Mean A:          {:.4f}'.format(meanA_eval))
+        print('Mean B:          {:.4f}'.format(meanB_eval))
+        print('Loss:            {:.4f}'.format(loss))
+        print("========================================")
