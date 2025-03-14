@@ -33,14 +33,12 @@ if __name__ == "__main__":
                         help='AdaptiveMaxPool2d / AdaptiveAvgPool2d / AvgPool2d')
     parsers.add_argument('--output_size', type=int, default=64)
     parsers.add_argument('--d_model', type=int, default=2048, help='Hidden of dimension size')
-    parsers.add_argument('--num_heads', type=int, default=8, help='number of head self attention')
     parsers.add_argument('--n_layers', type=int, default=2, help='Number of mamba layer')
     parsers.add_argument('--dropout', type=float, default=0.1, help='Dropout rate for head')
     parsers.add_argument('--root_dir', type=str, default='./../')
     
     parsers.add_argument('--pretrained_dir', type=str, default='./../')
     parsers.add_argument('--load_pretrained_best', type=bool, default=False)
-    parsers.add_argument('--load_pretrained_last', type=bool, default=False)
     parsers.add_argument('--use_kaiming_init', type=bool, default=True)
     
     parsers.add_argument('--batch_size', type=int, default=16)
@@ -72,7 +70,10 @@ if __name__ == "__main__":
         model.sample_embedding_network.load_state_dict(backbones_state['sample_embedding_network'])
         model.attention.load_state_dict(attention_state['attention'])
         model.linear.load_state_dict(linear_state['linear'])
-        model.mamba_linear.load_state_dict(linear_state['linear'])
+        
+        model.sketch_embedding_network.load_state_dict(backbones_state['sketch_embedding_network'])
+        model.sketch_attention.load_state_dict(attention_state['sketch_attention'])
+        model.mamba_linear.load_state_dict(linear_state['sketch_linear'])
         
         # model.sketch_embedding_network.load_state_dict(backbones_state['sketch_embedding_network'])
         # model.sketch_attention.load_state_dict(attention_state['sketch_attention'])
