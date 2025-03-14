@@ -16,8 +16,8 @@ class Mamba_FGSBIR(nn.Module):
     def __init__(self, args):
         super(Mamba_FGSBIR, self).__init__()
         self.sample_embedding_network = eval(args.backbone_name + "(args)")
+        self.sketch_embedding_network = eval(args.backbone_name + "(args)")
         self.loss = nn.TripletMarginLoss(margin=args.margin)        
-        self.sample_train_params = self.sample_embedding_network.parameters()
         self.args = args
         
         def init_weights(m):
@@ -26,12 +26,18 @@ class Mamba_FGSBIR(nn.Module):
                 
         self.attention = SelfAttention(args)
         self.linear = Linear_global(feature_num=self.args.output_size)
+        
+        self.sketch_attention = SelfAttention(args)
+        
         self.mamba = MambaModule(args)
         self.mamba_linear = Linear_global(feature_num=self.args.output_size)
         
         self.sample_embedding_network.fix_weights()
         self.attention.fix_weights()
         self.linear.fix_weights()
+        
+        self.sketch_embedding_network.fix_weights()
+        self.sketch_attention.fix_weights()
         
         if self.args.use_kaiming_init:
             self.mamba.apply(init_weights)
@@ -54,8 +60,8 @@ class Mamba_FGSBIR(nn.Module):
         loss = 0
         
         for i in range(len(batch['sketch_imgs'])):
-            sketch_features = self.attention(
-                self.sample_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
+            sketch_features = self.sketch_attention(
+                self.sketch_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
             
             # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
             sketch_feature = self.mamba_linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
@@ -81,8 +87,8 @@ class Mamba_FGSBIR(nn.Module):
             sketch_features_all = torch.FloatTensor().to(device)
             for data_sketch in batch['sketch_imgs']:
                 # print(data_sketch.shape) # (25, 3, 299, 299)
-                sketch_feature = self.attention(
-                    self.sample_embedding_network(data_sketch.to(device))
+                sketch_feature = self.sketch_attention(
+                    self.sketch_embedding_network(data_sketch.to(device))
                 )
                 # print("sketch_feature.shape: ", sketch_feature.shape) #(1, 2048)
                 sketch_features_all = torch.cat((sketch_features_all, sketch_feature.detach()))
