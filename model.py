@@ -121,8 +121,8 @@ class Mamba_FGSBIR(nn.Module):
             
             for i_sketch in range(sampled_batch.shape[0]):
                 sketch_feature = self.mamba_linear(self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device)))
-                target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
-                distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
+                target_distance = F.pairwise_distance(sketch_feature[-1].unsqueeze(0).to(device), image_array_tests[position_query].unsqueeze(0).to(device))
+                distance = F.pairwise_distance(sketch_feature[-1].unsqueeze(0).to(device), image_array_tests.to(device))
                 
                 rank_all[i_batch, i_sketch] = distance.le(target_distance).sum()
 

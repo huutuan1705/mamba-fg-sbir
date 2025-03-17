@@ -44,7 +44,7 @@ class MambaModule(nn.Module):
             x: Input tensor of shape (batch_size, seq_len, channels) for embeddings
         """
         sequence_output = self.backbone(x)
-        sequence_output = sequence_output[:, -1, :]
+        # sequence_output = sequence_output[:, -1, :]
         return F.normalize(sequence_output)
         
         # output = self.head(sequence_output)        
