@@ -64,7 +64,7 @@ class Mamba_FGSBIR(nn.Module):
                 self.sketch_embedding_network(batch['sketch_imgs'][i].to(device))) # (25, 2048)
             
             # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
-            sketch_feature = self.mamba(sketch_features.unsqueeze(0).to(device))
+            sketch_feature = self.mamba_linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
             # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
             positive_feature = positive_features[i]
             negative_feature = negative_features[i]
@@ -119,7 +119,7 @@ class Mamba_FGSBIR(nn.Module):
             sketch_query_name = '_'.join(sketch_name.split('/')[-1].split('_')[:-1])
             position_query = image_names.index(sketch_query_name)
 
-            sketch_feature = self.mamba(sampled_batch.unsqueeze(0).to(device))
+            sketch_feature = self.mamba_linear(self.mamba(sampled_batch.unsqueeze(0).to(device)))
             target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
             distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
             

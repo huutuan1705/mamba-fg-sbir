@@ -54,7 +54,7 @@ class MambaModule(nn.Module):
         attn_output, _ = self.attention(sequence_output, sequence_output, sequence_output)
         output = attn_output + sequence_output
         
-        return F.normalize(self.out(output[:, -1, :]))
+        return F.normalize(output[:, -1, :])
         
         # output = self.head(sequence_output)        
         # return output # (N, 64)
