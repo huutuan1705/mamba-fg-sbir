@@ -119,7 +119,7 @@ class Mamba_FGSBIR(nn.Module):
             sketch_query_name = '_'.join(sketch_name.split('/')[-1].split('_')[:-1])
             position_query = image_names.index(sketch_query_name)
 
-            sketch_feature = self.mamba_linear(self.mamba(sampled_batch.unsqueeze(0).to(device)))
+            sketch_feature = self.mamba(sampled_batch.unsqueeze(0).to(device))
             target_distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests[position_query].unsqueeze(0).to(device))
             distance = F.pairwise_distance(sketch_feature.to(device), image_array_tests.to(device))
             
