@@ -123,7 +123,7 @@ class Mamba_FGSBIR(nn.Module):
             sketch_feature = self.mamba_linear(self.mamba(sampled_batch.unsqueeze(0).to(device)))
             sketch_feature = sketch_feature.squeeze(0)
             
-            for i_sketch in range(len(sketch_feature.shape[0])):
+            for i_sketch in range(sketch_feature.shape[0]):
                 # print("sketch_feature.shape: ", sketch_feature.shape)
                 # print("sketch_feature[-1].shape: ", sketch_feature[-1].shape)
                 
