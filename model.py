@@ -65,7 +65,7 @@ class Mamba_FGSBIR(nn.Module):
             
             # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
             sketch_feature = self.mamba_linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
-            # print("sketch_feature.shape: ", sketch_feature.shape)
+            # print("sketch_feature.shape: ", sketch_feature.shape) # (1, 20, 64)
             # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
             positive_feature = positive_features[i]
             negative_feature = negative_features[i]
@@ -120,13 +120,15 @@ class Mamba_FGSBIR(nn.Module):
             sketch_query_name = '_'.join(sketch_name.split('/')[-1].split('_')[:-1])
             position_query = image_names.index(sketch_query_name)
             
-            for i_sketch in range(sampled_batch.shape[0]):
-                sketch_feature = self.mamba_linear(self.mamba(sampled_batch[:i_sketch+1].unsqueeze(0).to(device)))
+            sketch_feature = self.mamba_linear(self.mamba(sampled_batch.unsqueeze(0).to(device)))
+            sketch_feature = sketch_feature.squeeze(0)
+            
+            for i_sketch in len(sketch_feature.shape[0]):
                 # print("sketch_feature.shape: ", sketch_feature.shape)
                 # print("sketch_feature[-1].shape: ", sketch_feature[-1].shape)
-                sketch_feature = sketch_feature.squeeze(0)
-                target_distance = F.pairwise_distance(sketch_feature[-1].unsqueeze(0).to(device), image_array_tests[position_query].unsqueeze(0).to(device))
-                distance = F.pairwise_distance(sketch_feature[-1].to(device), image_array_tests.to(device))
+                
+                target_distance = F.pairwise_distance(sketch_feature[i_sketch].unsqueeze(0).to(device), image_array_tests[position_query].unsqueeze(0).to(device))
+                distance = F.pairwise_distance(sketch_feature[i_sketch].unsqueeze(0).to(device), image_array_tests.to(device))
                 
                 rank_all[i_batch, i_sketch] = distance.le(target_distance).sum()
 
