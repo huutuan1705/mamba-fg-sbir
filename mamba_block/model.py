@@ -45,9 +45,9 @@ class MambaModule(nn.Module):
         """
         sequence_output = self.backbone(x)
         
-        # return F.normalize(sequence_output[:, -1, :])
+        return F.normalize(sequence_output[:, -1, :])
         
-        output = self.head(sequence_output)        
+        # output = self.head(sequence_output)        
         return output # (N, 64)
     
 # model = MambaModule(None)
