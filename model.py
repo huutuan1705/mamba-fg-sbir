@@ -65,12 +65,12 @@ class Mamba_FGSBIR(nn.Module):
             
             # print("sketch_features.unsqueeze(0).shape: ", sketch_features.unsqueeze(0).shape)
             sketch_feature = self.mamba_linear(self.mamba(sketch_features.unsqueeze(0).to(device)))
-            print("sketch_feature.shape: ", sketch_feature.shape)
+            # print("sketch_feature.shape: ", sketch_feature.shape)
             # print("positive_features[i].shape: ", positive_features[i].shape) # (64, )
             positive_feature = positive_features[i]
             negative_feature = negative_features[i]
             
-            loss += self.loss(sketch_feature, positive_feature.unsqueeze(0), negative_feature.unsqueeze(0))
+            loss += self.loss(sketch_feature.squeeze(0), positive_feature.unsqueeze(0), negative_feature.unsqueeze(0))
         
         loss.backward()
         self.optimizer.step()
