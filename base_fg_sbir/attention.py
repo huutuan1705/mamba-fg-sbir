@@ -28,8 +28,7 @@ class SelfAttention(nn.Module):
         output = identify * att_out + identify
         output = self.pool_method(output).view(-1, 2048)
         return F.normalize(output)
-    
-    
+        
 class Linear_global(nn.Module):
     def __init__(self, feature_num):
         super(Linear_global, self).__init__()
