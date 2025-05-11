@@ -4,11 +4,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# from mamba_block.backbone import Mamba, MambaConfig
-# from mamba_block.head import MambaHead
+from mamba_block.backbone import Mamba, MambaConfig
+from mamba_block.head import MambaHead
 
-from backbone import Mamba, MambaConfig
-from head import MambaHead
+# from backbone import Mamba, MambaConfig
+# from head import MambaHead
 
 class MambaModule(nn.Module):
     def __init__(
