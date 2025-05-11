@@ -104,7 +104,7 @@ class Mamba_FGSBIR(nn.Module):
                 image_array_tests = torch.cat((image_array_tests, positive_feature))
                 image_names.extend(batch['positive_path'])
         
-        print(sketch_array_tests[0].shape)        
+        # print(sketch_array_tests[0].shape)        
         num_steps = len(sketch_array_tests[0])
         avererage_area = []
         avererage_area_percentile = []
@@ -119,7 +119,8 @@ class Mamba_FGSBIR(nn.Module):
             
             sketch_query_name = '_'.join(sketch_name.split('/')[-1].split('_')[:-1])
             position_query = image_names.index(sketch_query_name)
-
+            
+            print(sampled_batch.shape)
             sketch_feature = self.mamba_linear(self.mamba(sampled_batch.to(device)))
             
             for i_sketch in range(sampled_batch.shape[0]):
