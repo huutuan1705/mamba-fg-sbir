@@ -4,11 +4,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from mamba_block.backbone import Mamba, MambaConfig
-from mamba_block.head import MambaHead
+# from mamba_block.backbone import Mamba, MambaConfig
+# from mamba_block.head import MambaHead
 
-# from backbone import Mamba, MambaConfig
-# from head import MambaHead
+from backbone import Mamba, MambaConfig
+from head import MambaHead
 
 class MambaModule(nn.Module):
     def __init__(
@@ -45,12 +45,12 @@ class MambaModule(nn.Module):
         """
         sequence_output = self.backbone(x)
         
-        return F.normalize(sequence_output[:, -1, :])
+        # return F.normalize(sequence_output[:, -1, :])
         
-        # output = self.head(sequence_output)        
+        output = self.head(sequence_output)        
         return output # (N, 64)
     
 # model = MambaModule(None)
 # dummy_input = torch.randn(1, 25, 2048)
 # output = model(dummy_input)
-# print("Output shape:", output.shape) # (25, 64)
+# print("Output shape:", output.shape) # (1, 25, 64)
