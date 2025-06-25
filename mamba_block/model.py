@@ -43,7 +43,7 @@ class MambaModule(nn.Module):
         Args:
             x: Input tensor of shape (batch_size, seq_len, channels) for embeddings
         """
-        sequence_output = self.backbone(x)
+        sequence_output = self.backbone(x) # output: (batch_size, seq_len, channels)
         
         # return F.normalize(sequence_output[:, -1, :])
         
@@ -53,4 +53,4 @@ class MambaModule(nn.Module):
 # model = MambaModule(None)
 # dummy_input = torch.randn(1, 25, 2048)
 # output = model(dummy_input)
-# print("Output shape:", output.shape) # (1, 25, 64)
+# print("Output shape:", output.shape) # (1, 25, 2048)
